@@ -2,9 +2,12 @@ import gurobipy as gp
 from gurobipy import GRB
 
 from utils import *
+import os
+import sys
 
 
-def maxcut(graph,max_time = None,max_threads = None):
+
+def gurobi_solver(graph,max_time = None,max_threads = None):
     
 
     model = gp.Model()
@@ -20,8 +23,11 @@ def maxcut(graph,max_time = None,max_threads = None):
     cut = [data['weight']*(vdict[i] + vdict[j] - 2*vdict[i]*vdict[j]) for i,j,data in graph.edges(data=True)]
 
     model.setObjective(sum(cut), gp.GRB.MAXIMIZE)
+    
 
     model.optimize()
+    
+    
     
     return model.ObjVal, [key for key in vdict.keys() if abs(vdict[key].x) > 1e-6]
 
@@ -31,29 +37,52 @@ def maxcut(graph,max_time = None,max_threads = None):
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument( "--distribution", type=str, default='BA_800vertices_unweighted', help="Name of the dataset to be used (default: 'Facebook')" )
-    
+    parser.add_argument( "--distribution", type=str, default='torodial_10000vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    parser.add_argument( "--time_limit", type=float, default= 100, help="Maximum Time Limit" )
+    parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
   
     args = parser.parse_args()
 
+    distribution = args.distribution
+    time_limit = args.time_limit
+    threads = args.threads
 
-    test_dataset = GraphDataset(f'../data/testing/{args.distribution}',ordered=True)
+    sprint(distribution)
+    sprint(time_limit)
+    sprint(threads)
+
+    # sys.stdout = open('out.dat', 'w')
+    test_dataset = GraphDataset(f'../data/testing/{distribution}',ordered=True)
 
 
-    df = {'cut':[]}
+    
+    df = defaultdict(list)
 
     for _ in range(len(test_dataset)):
 
         graph = test_dataset.get()
-
         graph = nx.from_numpy_array(graph)
-
-        objVal, solution = maxcut(graph=graph)
-
-
+        objVal, solution = gurobi_solver(graph=graph,max_time=time_limit,max_threads=threads)
         df['cut'].append(objVal)
+        df['time'].append(time_limit)
+        df['threads'].append(threads)
+        
+        break
 
-    df = pd.DataFrame()
+    # df = pd.DataFrame()
+
+    folder_name = f'data/Gurobi/{distribution}'
+
+    os.makedirs(folder_name,exist_ok=True)
+
+    file_path = os.path.join(folder_name,'results') 
+
+    df = pd.DataFrame(df)
+    OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+    df['Approx. ratio'] = df['cut']/OPT['OPT'].values
+    print(df)
+
+    df.to_pickle(file_path)
 
 
         

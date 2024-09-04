@@ -1,40 +1,84 @@
-import cvxpy as cp
 from utils import *
-from scipy.linalg import sqrtm
 
 
-test_dataset = GraphDataset(f'../data/testing/BA_800vertices_unweighted',ordered=True)
 
 
-graph = test_dataset.get()
 
-n = len(graph)
+if __name__ == '__main__':
 
-matrix = cp.Variable((n , n ), PSD=True)
+    parser = ArgumentParser()
+    parser.add_argument( "--distribution", type=str, default='ER_5000vertices_unweighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    # parser.add_argument( "--time_limit", type=float, default=600, help="Maximum Time Limit" )
+    parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
 
-cut = .25 * cp.sum(cp.multiply(graph, 1 - matrix))
+    args = parser.parse_args()
 
-problem = cp.Problem(cp.Maximize(cut), [cp.diag(matrix) == 1])
-
-problem.solve(verbose=True)
-
-
-# print(matrix.value)
-# x = sqrtm(matrix.value)
-
-# u = np.random.random(n)
-
-# x = np.sign(x @ u)
-# print(x)
+    distribution = args.distribution
+    
+    threads = args.threads
 
 
-vectors = matrix.value
-random = np.random.normal(size=vectors.shape[1])
-random /= np.linalg.norm(random, 2)
+    import os
+    # This is to limit the number of threads
+    os.environ["OMP_NUM_THREADS"] = str(threads)
 
-spins = np.sign(np.dot(vectors, random))
 
-# print(np.sign(np.dot(vectors, random)))
 
-cut = (1/4) * np.sum( np.multiply( graph, 1 - np.outer(spins, spins) ) )
-print(cut)
+    import cvxpy as cp
+    from scipy.linalg import sqrtm
+    import time
+
+
+    test_dataset = GraphDataset(f'../data/testing/{distribution}',ordered=True)
+
+
+    df = defaultdict(list)
+    for i in range(len(test_dataset)):
+
+        
+        start = time.time()
+
+        graph = test_dataset.get()
+
+        n = len(graph)
+
+        matrix = cp.Variable((n , n ), PSD=True)
+
+        cut = .25 * cp.sum(cp.multiply(graph, 1 - matrix))
+
+        problem = cp.Problem(cp.Maximize(cut), [cp.diag(matrix) == 1])
+
+        problem.solve(verbose=True)
+
+        vectors = matrix.value
+        random = np.random.normal(size=vectors.shape[1])
+        random /= np.linalg.norm(random, 2)
+
+        spins = np.sign(np.dot(vectors, random))
+        cut = (1/4) * np.sum( np.multiply( graph, 1 - np.outer(spins, spins) ) )
+
+        end = time.time()
+
+        elapesed_time = end -start
+
+        df['cut'].append(cut)
+        df['Time'].append(elapesed_time)
+
+        break
+
+
+
+    
+
+    folder_name = f'data/SDP/{distribution}'
+
+    os.makedirs(folder_name,exist_ok=True)
+
+    file_path = os.path.join(folder_name,'results') 
+
+    df = pd.DataFrame(df)
+    OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+    df['Approx. ratio'] = df['cut']/OPT['OPT'].values
+    print(df)
+
+    df.to_pickle(file_path)

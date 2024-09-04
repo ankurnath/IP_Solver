@@ -1,55 +1,79 @@
 from docplex.mp.model import Model
-
-# mdl = Model(name='buses')
-# nbbus40 = mdl.integer_var(name='nbBus40')
-# nbbus30 = mdl.integer_var(name='nbBus30')
-
-# mdl.parameters.optimalitytarget=3
-
-
-# mdl.add_constraint(nbbus40*40 + nbbus30*30 <= 300, 'kids')
-
-# mdl.maximize(nbbus40*nbbus30)
-
-# mdl.solve()
-
-# for v in mdl.iter_integer_vars():
-#     print(v," = ",v.solution_value)
-
-# print()
-# print("with more constraints")
-
-# option1=mdl.binary_var(name='option1')
-# option2=mdl.binary_var(name='option2')
-
-
-# import cplex
 from utils import *
-
-# model  = cplex.Cplex()
-
-model = Model(name='Maximum Cut')
-
-# model.set_problem_name('Maximum Cut')
-# model.set_problem_type(model.problem_type.MILP)
-# model.parameters.timelimit.set(3600.0)
-
-# model.objective.set_sense(model.objective.sense.maximize)
+import os
 
 
-test_dataset = GraphDataset(f'../data/testing/BA_800vertices_unweighted',ordered=True)
-graph = test_dataset.get()
-graph = nx.from_numpy_array(graph)
+def cplex_solver(graph,max_time,max_threads):
+    model = Model(name='Maximum Cut')
+    model.parameters.timelimit.set(max_time)
+    model.parameters.threads(max_threads)
 
-x = {node: model.binary_var(name=f"x_{node}") for node in graph.nodes()}
+    x = {node: model.binary_var(name=f"x_{node}") for node in graph.nodes()}
 
-model.maximize(model.sum(data['weight']*x[u]+data['weight']*x[v]-2*data['weight']*x[u]*x[v] for u,v, data in graph.edges(data=True)))
+    model.maximize(model.sum(data['weight']*x[u]+data['weight']*x[v]-2*data['weight']*x[u]*x[v] for u,v, data in graph.edges(data=True)))
+
+    model.print_information()
+
+    model.solve()
+
+    # print(model._objective_value())
+    return model._objective_value()
 
 
-model.print_information()
-model.solve()
 
-print(model._objective_value())
+if __name__ == '__main__':
+
+    parser = ArgumentParser()
+    parser.add_argument( "--distribution", type=str, default='torodial_10000vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    parser.add_argument( "--time_limit", type=float, default= 100, help="Maximum Time Limit" )
+    parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
+  
+    args = parser.parse_args()
+
+    distribution = args.distribution
+    time_limit = args.time_limit
+    threads = args.threads
+
+    sprint(distribution)
+    sprint(time_limit)
+    sprint(threads)
+
+    test_dataset = GraphDataset(f'../data/testing/{distribution}',ordered=True)
+
+    df = defaultdict(list)
+
+    for _ in range(len(test_dataset)):
+
+        graph = test_dataset.get()
+        graph = nx.from_numpy_array(graph)
+        objVal= cplex_solver(graph=graph,max_time=time_limit,max_threads=threads)
+        df['cut'].append(objVal)
+        df['time'].append(time_limit)
+        df['threads'].append(threads)
+        
+        
+
+    # df = pd.DataFrame()
+
+    folder_name = f'data/Cplex/{distribution}'
+
+    os.makedirs(folder_name,exist_ok=True)
+
+    file_path = os.path.join(folder_name,'results') 
+
+    df = pd.DataFrame(df)
+    print(df)
+
+    df.to_pickle(file_path)
+    print(f'Data has been saved to {file_path}')
+
+
+
+
+
+
+
+
 
 # tms = model.solve()
 # assert tms
