@@ -67,7 +67,7 @@ if __name__ == '__main__':
         df['time'].append(time_limit)
         df['threads'].append(threads)
         
-        break
+        # break
 
     # df = pd.DataFrame()
 
@@ -78,8 +78,8 @@ if __name__ == '__main__':
     file_path = os.path.join(folder_name,'results') 
 
     df = pd.DataFrame(df)
-    OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
-    df['Approx. ratio'] = df['cut']/OPT['OPT'].values
+    # OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+    # df['Approx. ratio'] = df['cut']/OPT['OPT'].values
     print(df)
 
     df.to_pickle(file_path)

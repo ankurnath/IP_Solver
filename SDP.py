@@ -7,7 +7,7 @@ from utils import *
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument( "--distribution", type=str, default='ER_5000vertices_unweighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    parser.add_argument( "--distribution", type=str, default='ER_800vertices_unweighted', help="Name of the dataset to be used (default: 'Facebook')" )
     # parser.add_argument( "--time_limit", type=float, default=600, help="Maximum Time Limit" )
     parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
 
@@ -48,28 +48,34 @@ if __name__ == '__main__':
 
         problem = cp.Problem(cp.Maximize(cut), [cp.diag(matrix) == 1])
 
-        problem.solve(verbose=True)
+        problem.solve(verbose=False)
+        # print(problem.solver_stats)
 
-        vectors = matrix.value
-        random = np.random.normal(size=vectors.shape[1])
-        random /= np.linalg.norm(random, 2)
+        # sprint(problem.solver_stats.solve_time)
 
-        spins = np.sign(np.dot(vectors, random))
-        cut = (1/4) * np.sum( np.multiply( graph, 1 - np.outer(spins, spins) ) )
+        if problem.solver_stats.extra_stats['info']['status'] =='solved':
 
-        end = time.time()
+            vectors = matrix.value
+            random = np.random.normal(size=vectors.shape[1])
+            random /= np.linalg.norm(random, 2)
 
-        elapesed_time = end -start
+            spins = np.sign(np.dot(vectors, random))
+            cut = (1/4) * np.sum( np.multiply( graph, 1 - np.outer(spins, spins) ) )
 
-        df['cut'].append(cut)
-        df['Time'].append(elapesed_time)
+            end = time.time()
 
-        break
+            elapesed_time = end -start
 
+            df['cut'].append(cut)
+            df['Time'].append(elapesed_time)
 
+        else:
+            df['cut'].append(0)
+            df['cut'].append(elapesed_time)
 
-    
+        # break
 
+        
     folder_name = f'data/SDP/{distribution}'
 
     os.makedirs(folder_name,exist_ok=True)
@@ -77,8 +83,8 @@ if __name__ == '__main__':
     file_path = os.path.join(folder_name,'results') 
 
     df = pd.DataFrame(df)
-    OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
-    df['Approx. ratio'] = df['cut']/OPT['OPT'].values
+    # # OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+    # # df['Approx. ratio'] = df['cut']/OPT['OPT'].values
     print(df)
 
     df.to_pickle(file_path)

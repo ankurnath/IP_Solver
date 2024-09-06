@@ -11,6 +11,7 @@ import time
 import os
 import pickle
 from multiprocessing.pool import Pool
+import re
 
 def save_to_pickle(data, file_path):
     """
@@ -25,7 +26,7 @@ def save_to_pickle(data, file_path):
     print(f'Data has been saved to {file_path}')
 
 
-def load_from_pickle(file_path):
+def load_from_pickle(file_path,quiet = False):
     """
     Load data from a pickle file.
 
@@ -37,7 +38,8 @@ def load_from_pickle(file_path):
     """
     with open(file_path, 'rb') as file:
         loaded_data = pickle.load(file)
-    print(f'Data has been loaded from {file_path}')
+    if not quiet:
+        print(f'Data has been loaded from {file_path}')
     return loaded_data
 
 
