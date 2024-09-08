@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     parser = ArgumentParser()
     parser.add_argument( "--distribution", type=str, default='torodial_10000vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
-    parser.add_argument( "--time_limit", type=float, default= 100, help="Maximum Time Limit" )
+    parser.add_argument( "--time_limit", type=float, default= 200, help="Maximum Time Limit" )
     parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
   
     args = parser.parse_args()
