@@ -6,7 +6,7 @@ import subprocess
 
 # algorithms = ['Greedy','TS','EO','SG','Cplex']
 # algorithms = ['SDP']
-algorithms = ['Gurobi']
+algorithms = ['Cplex']
 
 distributions = [
                 'ER_800vertices_unweighted',
