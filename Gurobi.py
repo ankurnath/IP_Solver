@@ -11,6 +11,7 @@ def gurobi_solver(graph,max_time = None,max_threads = None):
     
 
     model = gp.Model()
+    model.setParam("OutputFlag", 0)
 
     if max_time:
         model.setParam('TimeLimit', max_time)
@@ -37,9 +38,9 @@ def gurobi_solver(graph,max_time = None,max_threads = None):
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument( "--distribution", type=str, default='torodial_10000vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
-    parser.add_argument( "--time_limit", type=float, default= 200, help="Maximum Time Limit" )
-    parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
+    parser.add_argument( "--distribution", type=str, default='BA_200vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    parser.add_argument( "--time_limit", type=float, default= 10, help="Maximum Time Limit" )
+    parser.add_argument( "--threads", type=int, default= 10, help="Maximum number of threads" )
   
     args = parser.parse_args()
 
@@ -58,7 +59,7 @@ if __name__ == '__main__':
     
     df = defaultdict(list)
 
-    for _ in range(len(test_dataset)):
+    for _ in tqdm(range(len(test_dataset))):
 
         graph = test_dataset.get()
         graph = nx.from_numpy_array(graph)
@@ -78,9 +79,16 @@ if __name__ == '__main__':
     file_path = os.path.join(folder_name,'results') 
 
     df = pd.DataFrame(df)
+    try:
+        OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+        df['OPT'] = OPT['OPT']
+        df['Ratio'] = df['cut']/df['OPT']
+        sprint(df['Ratio'].mean())
+    except:
+        pass
     # OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
     # df['Approx. ratio'] = df['cut']/OPT['OPT'].values
-    print(df)
+    # print(df)
 
     df.to_pickle(file_path)
 

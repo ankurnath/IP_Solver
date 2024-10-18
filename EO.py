@@ -95,7 +95,7 @@ if __name__ == '__main__':
     
 
     df = defaultdict(list)
-    for i in range(len(test_dataset)):
+    for i in tqdm(range(len(test_dataset))):
 
         graph = test_dataset.get()
         start = time.time()

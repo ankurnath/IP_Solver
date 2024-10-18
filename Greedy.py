@@ -91,7 +91,9 @@ from argparse import ArgumentParser
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument( "--distribution", type=str, default='ER_7000vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    parser.add_argument( "--distribution", type=str, 
+                        default='ER_500vertices_weighted', 
+                        help="Name of the dataset" )
     
     args = parser.parse_args()
 
@@ -101,11 +103,13 @@ if __name__ == '__main__':
 
     test_dataset = GraphDataset(f'../data/testing/{distribution}',ordered=True)
     
+    
 
     df = defaultdict(list)
     for i in range(len(test_dataset)):
 
         graph = test_dataset.get()
+
         start = time.time()
         obj_val = standard_greedy(flatten_graph(graph=graph))
         end = time.time()
@@ -123,10 +127,17 @@ if __name__ == '__main__':
     file_path = os.path.join(folder_name,'results') 
 
     df = pd.DataFrame(df)
+    try:
+        OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+        df['OPT'] = OPT['OPT']
+        df['Ratio'] = df['cut']/df['OPT']
+        sprint(df['Ratio'].mean())
+    except:
+        pass
     
     # OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
     # df['Approx. ratio'] = df['cut']/OPT['OPT'].values
-    print(df)
+    # print(df)
 
     df.to_pickle(file_path)
 

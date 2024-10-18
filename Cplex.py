@@ -16,7 +16,7 @@ def cplex_solver(graph,max_time,max_threads):
 
     model.solve()
 
-    # print(model._objective_value())
+    
     return model._objective_value()
 
 
@@ -24,9 +24,9 @@ def cplex_solver(graph,max_time,max_threads):
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument( "--distribution", type=str, default='torodial_10000vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
-    parser.add_argument( "--time_limit", type=float, default= 200, help="Maximum Time Limit" )
-    parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
+    parser.add_argument( "--distribution", type=str, default='ER_200vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    parser.add_argument( "--time_limit", type=float, default= 600, help="Maximum Time Limit" )
+    parser.add_argument( "--threads", type=int, default= 1, help="Maximum number of threads" )
   
     args = parser.parse_args()
 
@@ -38,11 +38,16 @@ if __name__ == '__main__':
     sprint(time_limit)
     sprint(threads)
 
+    
+
+    
+
     test_dataset = GraphDataset(f'../data/testing/{distribution}',ordered=True)
 
     df = defaultdict(list)
 
-    for _ in range(len(test_dataset)):
+    # for _ in range(len(test_dataset)):
+    for _ in range(1):
 
         graph = test_dataset.get()
         graph = nx.from_numpy_array(graph)
@@ -53,7 +58,7 @@ if __name__ == '__main__':
         
         
 
-    # df = pd.DataFrame()
+    
 
     folder_name = f'data/Cplex/{distribution}'
 
@@ -62,9 +67,21 @@ if __name__ == '__main__':
     file_path = os.path.join(folder_name,'results') 
 
     df = pd.DataFrame(df)
+    try:
+        OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+        df['OPT'] = OPT['OPT']
+        df['Ratio'] = df['cut']/df['OPT']
+        print(df['Ratio'].mean())
+    except:
+        pass
+    
+
+
+    
     print(df)
 
     df.to_pickle(file_path)
+    
     print(f'Data has been saved to {file_path}')
 
 

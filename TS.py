@@ -1,6 +1,7 @@
 import numpy as np
 from  numba import njit 
 from utils import *
+from tqdm import tqdm
 
 @njit
 def flatten_graph(graph):
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     parser.add_argument("--num_repeat", type=int,default=50, help="Distribution of dataset")
     parser.add_argument("--step_factor", type=int, default=2, help="Step factor")
     parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
-    parser.add_argument("--gamma", type=int, default=100, help="Tabu Tenure")
+    parser.add_argument("--gamma", type=int, default=20, help="Tabu Tenure")
 
     args = parser.parse_args()
 
@@ -101,7 +102,7 @@ if __name__ == '__main__':
     test_dataset = GraphDataset(f'../data/testing/{distribution}',ordered=True)
     df = defaultdict(list)
 
-    for i in range(len(test_dataset)):
+    for i in tqdm(range(len(test_dataset))):
         graph=test_dataset.get()
 
         start = time.time()
@@ -132,7 +133,14 @@ if __name__ == '__main__':
 
     file_path = os.path.join(folder_name,'results') 
     df = pd.DataFrame(df)
-    print(df)
+    try:
+        OPT = load_from_pickle(f'../data/testing/{distribution}/optimal')
+        df['OPT'] = OPT['OPT']
+        df['Ratio'] = df['cut']/df['OPT']
+        sprint(df['Ratio'].mean())
+    except:
+        pass
+    # print(df)
 
     df.to_pickle(file_path)
 

@@ -11,26 +11,35 @@ def plot_mean_approx_ratios(final_df):
     final_df (pd.DataFrame): A DataFrame that contains columns 'algorithm', 'n', and 'approx'
     """
     # Create a new figure
-    plt.figure(dpi=200)
-    
+    plt.figure(dpi=300)
 
     colors = {
+    'TS': '#670067',
+    'EO': '#f67f10',
+    'Greedy': '#a20dfd',
+    'Cplex': '#37a1e2',
+    'SDP': '#4c8681',
+    'Gurobi': '#f46666',
+        }
+    
 
-            'TS':'#f5945c',
-            'EO':'#fec76f',
-            'Greedy':'#71a3c1',
-            'Cplex': '#be95be',
-            'SDP':'#6dbfb8',
-            'Gurobi':'#75ba75',
+    # colors = {
 
-            # 'TS':'#f2476a',
-            # 'EO':'#fb654e',
-            # 'Greedy':'#eb2d3a',
-            # 'Cplex': '#add8e6',
-            # 'SDP':'#6dbfb8',
-            # 'Gurobi':'#90ee90'
+    #         'TS':'#f5945c',
+    #         'EO':'#fec76f',
+    #         'Greedy':'#71a3c1',
+    #         'Cplex': '#be95be',
+    #         'SDP':'#6dbfb8',
+    #         'Gurobi':'#75ba75',
 
-    }
+    #         # 'TS':'#f2476a',
+    #         # 'EO':'#fb654e',
+    #         # 'Greedy':'#eb2d3a',
+    #         # 'Cplex': '#add8e6',
+    #         # 'SDP':'#6dbfb8',
+    #         # 'Gurobi':'#90ee90'
+
+    # }
 
     # Iterate through each group of the DataFrame grouped by 'algorithm'
     for algorithm, group_df in final_df.groupby('algorithm'):
@@ -58,13 +67,13 @@ def plot_mean_approx_ratios(final_df):
                       color= color)
 
         
-        fontsize = 12
+        fontsize = 16
         
         if algorithm =='TS':
             plt.text(sizes[-1] + 100, mean_approx_ratios[-1], 'Tabu Search', fontsize = fontsize,color=color ,verticalalignment='center')
 
         elif algorithm =='EO':
-            plt.text(sizes[-1] + 100, mean_approx_ratios[-1], 'Extremal\nOptimization', fontsize = fontsize, color=color ,
+            plt.text(sizes[-1] + 100, mean_approx_ratios[-1]+0.005, 'Extremal\nOptimization', fontsize = fontsize, color=color ,
                      verticalalignment='center')
 
         elif algorithm =='Greedy':
@@ -79,7 +88,9 @@ def plot_mean_approx_ratios(final_df):
 
         else:
             plt.text(sizes[-1] + 100, mean_approx_ratios[-1], algorithm.upper(), fontsize = fontsize,color=color , verticalalignment='center')
-        plt.grid(True,axis='y', alpha=0.5)
+        # plt.grid(True,axis='y', alpha=0.5)
+        plt.grid(True, linestyle='--', alpha=0.7)
+        plt.locator_params(nbins=6)
         sns.despine()
         # plt.grid()
 
@@ -88,14 +99,20 @@ def plot_mean_approx_ratios(final_df):
 
     # Add labels, title, and legend
     # plt.ylim(0.6,1)
-    plt.xlabel('Graph size,|V|')
-    plt.ylabel('Approximation ratio')
-    plt.title('Approximation ratio vs Graph Size')
+    fontsize = 16
+    plt.xlabel('Graph size,|V|',fontsize=fontsize)
+    plt.ylabel('Approximation ratio',fontsize=fontsize)
+
+    plt.xticks(fontsize=fontsize )
+    plt.yticks(fontsize=fontsize )
+    # plt.title('Approximation ratio vs Graph Size')
+    # plt.title(f'{distribution} ({weighted.replace("_","")})')
     # plt.legend()
 
     # Display the plot
-    plt.show()
+    # plt.show()
     plt.savefig(f'{distribution}_{weighted}', bbox_inches='tight')
+    plt.savefig(f'{distribution}_{weighted}.pdf', bbox_inches='tight')
 
 
 import os
@@ -110,6 +127,8 @@ import pandas as pd
 
 algorithms = ['Greedy', 'TS', 'EO', 'Cplex','SDP','Gurobi']
 distributions = [('ER', '_weighted'), ('ER', '_unweighted'), ('torodial', '_weighted'), ('planar', '_weighted'), ('planar', '_unweighted')]
+
+# distributions = [('torodial', '_weighted')]
 for distribution, weighted in distributions:
     dfs = []
 
@@ -162,4 +181,6 @@ for distribution, weighted in distributions:
         print(f"No data found for distribution {distribution} and weighted {weighted}.")
 
     print(distribution, weighted)
+    # print(load_from_pickle(optimal_path,quiet = True))
+    # print(final_df)
     plot_mean_approx_ratios(final_df=final_df)

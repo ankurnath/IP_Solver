@@ -7,7 +7,7 @@ from utils import *
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument( "--distribution", type=str, default='ER_800vertices_unweighted', help="Name of the dataset to be used (default: 'Facebook')" )
+    parser.add_argument( "--distribution", type=str, default='BA_200vertices_weighted', help="Name of the dataset to be used (default: 'Facebook')" )
     # parser.add_argument( "--time_limit", type=float, default=600, help="Maximum Time Limit" )
     parser.add_argument( "--threads", type=int, default= 20, help="Maximum number of threads" )
 
@@ -33,7 +33,8 @@ if __name__ == '__main__':
 
 
     df = defaultdict(list)
-    for i in range(len(test_dataset)):
+    # for i in range(len(test_dataset)):
+    for i in range(10):
 
         
         start = time.time()
